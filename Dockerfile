@@ -1,14 +1,12 @@
-# Use a lightweight Java image
-FROM openjdk:17-jdk-slim
-
-# Set working directory inside container
+# Start with Maven to build the project
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the JAR file to the container
-COPY target/thymleaf-demo-3-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose port 8080 (same as your Spring Boot app)
+# Now use a smaller image to run the app
+FROM eclipse-temurin:17-jdk-jammy
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Run the JAR
 ENTRYPOINT ["java", "-jar", "app.jar"]
