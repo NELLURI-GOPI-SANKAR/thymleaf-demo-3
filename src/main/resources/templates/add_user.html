@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            cursor: none;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: float 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .form-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 500px;
+            width: 100%;
+            animation: slideInFromTop 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        h2 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.6); }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        label {
+            display: block;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        input:focus {
+            outline: none;
+            background: rgba(255,255,255,1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5), 0 8px 25px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        input:focus + label,
+        input:hover + label {
+            color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76,175,80,0.6);
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Dolphin cursor */
+        .dolphin {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            pointer-events: none;
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+
+        .dolphin svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 10px rgba(0,150,255,0.6));
+        }
+
+        /* Water ripple effect */
+        .ripple {
+            position: fixed;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            background: radial-gradient(circle, rgba(0,150,255,0.3) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Floating bubbles */
+        .bubble {
+            position: fixed;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleFloat 4s linear infinite;
+        }
+
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Form validation effects */
+        .form-group.success input {
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+
+        .form-group.error input {
+            border: 2px solid #f44336;
+            box-shadow: 0 0 10px rgba(244,67,54,0.3);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Welcome message animation */
+        .welcome-message {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1.5s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            input {
+                padding: 0.8rem;
+            }
+        }
+
+        /* Loading animation for form submission */
+        .submit-btn.loading {
+            background: linear-gradient(45deg, #ccc, #999);
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .submit-btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Success celebration effect */
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: #4CAF50;
+            animation: celebrate 0.8s ease-out;
+            pointer-events: none;
+            z-index: 1001;
+        }
+
+        @keyframes celebrate {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>✨ Add New User</h2>
+        
+        <div class="welcome-message">
+            🌊 Welcome! Create a new user account below 🌊
+        </div>
+
+        <form th:action="@{/saveUser}" th:object="${user}" method="post" id="addUserForm">
+            
+            <div class="form-group">
+                <label for="name">👤 Name:</label>
+                <input type="text" th:field="*{name}" id="name" placeholder="Enter full name" required />
+            </div>
+
+            <div class="form-group">
+                <label for="email">📧 Email:</label>
+                <input type="email" th:field="*{email}" id="email" placeholder="Enter email address" required />
+            </div>
+
+            <div class="form-group">
+                <label for="gender">⚥ Gender:</label>
+                <input type="text" th:field="*{gender}" id="gender" placeholder="Enter gender" required />
+            </div>
+
+            <div class="form-group">
+                <label for="age">🎂 Age:</label>
+                <input type="number" th:field="*{age}" id="age" placeholder="Enter age" min="1" max="120" required />
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                💾 Save User
+            </button>
+        </form>
+    </div>
+
+    <!-- Dolphin cursor -->
+    <div class="dolphin" id="dolphin">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="dolphinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#00BFFF;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#0080FF;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path d="M20 50 Q30 30 50 35 Q70 40 80 50 Q75 60 65 65 Q50 70 40 65 Q30 60 20 50 Z" fill="url(#dolphinGradient)"/>
+            <path d="M50 35 Q60 25 70 30 Q65 35 60 40 Q55 37 50 35 Z" fill="url(#dolphinGradient)"/>
+            <path d="M40 65 Q45 75 55 70 Q50 65 40 65 Z" fill="url(#dolphinGradient)"/>
+            <circle cx="45" cy="45" r="2" fill="white"/>
+            <circle cx="47" cy="45" r="1" fill="black"/>
+        </svg>
+    </div>
+
+    <script>
+        // Dolphin cursor tracking
+        const dolphin = document.getElementById('dolphin');
+        let mouseX = 0;
+        let mouseY = 0;
+        let dolphinX = 0;
+        let dolphinY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Create ripple effect
+            createRipple(mouseX, mouseY);
+        });
+
+        // Smooth dolphin movement
+        function animateDolphin() {
+            dolphinX += (mouseX - dolphinX) * 0.1;
+            dolphinY += (mouseY - dolphinY) * 0.1;
+            
+            dolphin.style.left = dolphinX - 30 + 'px';
+            dolphin.style.top = dolphinY - 30 + 'px';
+            
+            // Rotate dolphin based on movement direction
+            const angle = Math.atan2(mouseY - dolphinY, mouseX - dolphinX) * 180 / Math.PI;
+            dolphin.style.transform = `rotate(${angle}deg)`;
+            
+            requestAnimationFrame(animateDolphin);
+        }
+
+        animateDolphin();
+
+        // Create ripple effect
+        function createRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = x - 10 + 'px';
+            ripple.style.top = y - 10 + 'px';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Create floating bubbles
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.style.left = Math.random() * window.innerWidth + 'px';
+            bubble.style.width = bubble.style.height = Math.random() * 20 + 5 + 'px';
+            bubble.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(bubble);
+            
+            setTimeout(() => {
+                bubble.remove();
+            }, 4000);
+        }
+
+        // Generate bubbles periodically
+        setInterval(createBubble, 500);
+
+        // Form validation and effects
+        const form = document.getElementById('addUserForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="number"]');
+
+        // Add input validation effects
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                const formGroup = this.closest('.form-group');
+                if (this.value.trim() !== '') {
+                    formGroup.classList.add('success');
+                    formGroup.classList.remove('error');
+                } else {
+                    formGroup.classList.add('error');
+                    formGroup.classList.remove('success');
+                }
+            });
+
+            input.addEventListener('focus', function() {
+                const formGroup = this.closest('.form-group');
+                formGroup.classList.remove('error', 'success');
+            });
+
+            // Add typing effect
+            input.addEventListener('input', function() {
+                const formGroup = this.closest('.form-group');
+                if (this.value.length > 0) {
+                    formGroup.classList.add('success');
+                    formGroup.classList.remove('error');
+                }
+            });
+        });
+
+        // Form submission with loading animation
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            let isValid = true;
+            inputs.forEach(input => {
+                if (input.value.trim() === '') {
+                    input.closest('.form-group').classList.add('error');
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                return;
+            }
+            
+            // Add loading state
+            submitBtn.classList.add('loading');
+            submitBtn.textContent = 'Saving...';
+            
+            // Create explosion effect
+            createExplosion(submitBtn);
+            
+            // Simulate form submission delay
+            setTimeout(() => {
+                // Show success celebration
+                showCelebration();
+                
+                // Remove loading state
+                submitBtn.classList.remove('loading');
+                submitBtn.textContent = '💾 Save User';
+                
+                // Actually submit the form after celebration
+                setTimeout(() => {
+                    form.submit();
+                }, 1000);
+            }, 1500);
+        });
+
+        // Create explosion effect
+        function createExplosion(element) {
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            for (let i = 0; i < 12; i++) {
+                const spark = document.createElement('div');
+                spark.style.position = 'fixed';
+                spark.style.width = '6px';
+                spark.style.height = '6px';
+                spark.style.background = '#4CAF50';
+                spark.style.borderRadius = '50%';
+                spark.style.pointerEvents = 'none';
+                spark.style.left = centerX + 'px';
+                spark.style.top = centerY + 'px';
+                spark.style.zIndex = '1001';
+                document.body.appendChild(spark);
+                
+                const angle = (i * 30) * Math.PI / 180;
+                const velocity = 80;
+                
+                spark.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { 
+                        transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, 
+                        opacity: 0 
+                    }
+                ], {
+                    duration: 800,
+                    easing: 'ease-out'
+                }).onfinish = () => spark.remove();
+            }
+        }
+
+        // Show celebration effect
+        function showCelebration() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = '🎉';
+            document.body.appendChild(celebration);
+            
+            setTimeout(() => {
+                celebration.remove();
+            }, 800);
+        }
+
+        // Add floating label effect
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+
+            input.addEventListener('blur', function() {
+                if (this.value === '') {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+
+        // Add welcome animation on page load
+        window.addEventListener('load', function() {
+            const welcomeMsg = document.querySelector('.welcome-message');
+            welcomeMsg.style.animation = 'fadeInUp 1.5s ease-out';
+        });
+    </script>
+</body>
+</html>

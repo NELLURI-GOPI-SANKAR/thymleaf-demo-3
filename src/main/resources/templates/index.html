@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: float 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: slideInFromTop 1s ease-out;
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.6); }
+        }
+
+        .add-user-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-user-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .add-user-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,107,107,0.6);
+        }
+
+        .add-user-btn:hover::before {
+            left: 100%;
+        }
+
+        .table-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+        }
+
+        th {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        th::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        tr {
+            transition: all 0.3s ease;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.02);
+        }
+
+        tr:hover td {
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .edit-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            box-shadow: 0 2px 10px rgba(33,150,243,0.4);
+        }
+
+        .delete-btn {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+            box-shadow: 0 2px 10px rgba(244,67,54,0.4);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .edit-btn:hover {
+            box-shadow: 0 4px 20px rgba(33,150,243,0.6);
+        }
+
+        .delete-btn:hover {
+            box-shadow: 0 4px 20px rgba(244,67,54,0.6);
+        }
+
+        /* Dolphin cursor */
+        .dolphin {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+
+        .dolphin svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 10px rgba(0,150,255,0.6));
+        }
+
+        /* Water ripple effect */
+        .ripple {
+            position: fixed;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            background: radial-gradient(circle, rgba(0,150,255,0.3) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Floating bubbles */
+        .bubble {
+            position: fixed;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleFloat 4s linear infinite;
+        }
+
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .table-container {
+                padding: 1rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Management Dashboard</h1>
+        
+        <a href="/add_user" class="add-user-btn">✨ Add New User</a>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+					<tr>
+					<th>ID</th>
+					<th>NAME</th>
+					<th>EMAIL</th>
+					<th>GENDER</th>
+					<th>AGE</th>
+					<th>Actions</th>
+					</tr>
+					<tr th:each="u:${users}">
+					<td th:text="${u.id}"></td>
+					<td th:text="${u.name}"></td>
+					<td th:text="${u.email}"></td>
+					<td th:text="${u.gender}"></td>
+					<td th:text="${u.age}"></td>
+					<td>
+					<a th:href="@{'/updateUserForm/'+${u.id}}">Edit</a>
+					<a th:href="@{'/deleteUser/'+${u.id}}">Delete</a>
+					</td>
+					</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Dolphin cursor -->
+    <div class="dolphin" id="dolphin">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="dolphinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#00BFFF;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#0080FF;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path d="M20 50 Q30 30 50 35 Q70 40 80 50 Q75 60 65 65 Q50 70 40 65 Q30 60 20 50 Z" fill="url(#dolphinGradient)"/>
+            <path d="M50 35 Q60 25 70 30 Q65 35 60 40 Q55 37 50 35 Z" fill="url(#dolphinGradient)"/>
+            <path d="M40 65 Q45 75 55 70 Q50 65 40 65 Z" fill="url(#dolphinGradient)"/>
+            <circle cx="45" cy="45" r="2" fill="white"/>
+            <circle cx="47" cy="45" r="1" fill="black"/>
+        </svg>
+    </div>
+
+    <script>
+        // Dolphin cursor tracking
+        const dolphin = document.getElementById('dolphin');
+        let mouseX = 0;
+        let mouseY = 0;
+        let dolphinX = 0;
+        let dolphinY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Create ripple effect
+            createRipple(mouseX, mouseY);
+        });
+
+        // Smooth dolphin movement
+        function animateDolphin() {
+            dolphinX += (mouseX - dolphinX) * 0.1;
+            dolphinY += (mouseY - dolphinY) * 0.1;
+            
+            dolphin.style.left = dolphinX - 20 + 'px';
+            dolphin.style.top = dolphinY - 20 + 'px';
+            
+            // Rotate dolphin based on movement direction
+            const angle = Math.atan2(mouseY - dolphinY, mouseX - dolphinX) * 180 / Math.PI;
+            dolphin.style.transform = `rotate(${angle}deg)`;
+            
+            requestAnimationFrame(animateDolphin);
+        }
+
+        animateDolphin();
+
+        // Create ripple effect
+        function createRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = x - 10 + 'px';
+            ripple.style.top = y - 10 + 'px';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Create floating bubbles
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.style.left = Math.random() * window.innerWidth + 'px';
+            bubble.style.width = bubble.style.height = Math.random() * 20 + 5 + 'px';
+            bubble.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(bubble);
+            
+            setTimeout(() => {
+                bubble.remove();
+            }, 4000);
+        }
+
+        // Generate bubbles periodically
+        setInterval(createBubble, 500);
+
+        // Add click effects to buttons
+        document.querySelectorAll('.action-btn, .add-user-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Create explosion effect
+                for (let i = 0; i < 8; i++) {
+                    const spark = document.createElement('div');
+                    spark.style.position = 'absolute';
+                    spark.style.width = '4px';
+                    spark.style.height = '4px';
+                    spark.style.background = '#fff';
+                    spark.style.borderRadius = '50%';
+                    spark.style.pointerEvents = 'none';
+                    spark.style.left = e.clientX + 'px';
+                    spark.style.top = e.clientY + 'px';
+                    document.body.appendChild(spark);
+                    
+                    const angle = (i * 45) * Math.PI / 180;
+                    const velocity = 50;
+                    
+                    spark.animate([
+                        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                        { 
+                            transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, 
+                            opacity: 0 
+                        }
+                    ], {
+                        duration: 600,
+                        easing: 'ease-out'
+                    }).onfinish = () => spark.remove();
+                }
+                
+                // Navigate after animation
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 200);
+            });
+        });
+
+        // Add hover effects to table rows
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.background = 'rgba(255,255,255,0.15)';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.background = 'transparent';
+            });
+        });
+    </script>
+</body>
+</html>
